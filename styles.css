@@ -63,6 +63,24 @@ body {
   touch-action: none;
 }
 
+#siteFooter {
+  position: fixed;
+  left: 50%;
+  bottom: 8px;
+  transform: translateX(-50%);
+  z-index: 90;
+  font-size: 12px;
+}
+
+#siteFooter a {
+  color: #7e1f4a;
+  text-decoration: none;
+  background: rgba(255, 236, 243, 0.9);
+  border: 1px solid rgba(179, 33, 102, 0.2);
+  border-radius: 999px;
+  padding: 4px 10px;
+}
+
 #mapSvg {
   display: block;
   width: 100%;
