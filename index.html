@@ -3,11 +3,77 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>全国邦群地图</title>
+    <title>全国邦群地图 - BanG Dream! 邦邦同好群聊导航</title>
+    <meta
+      name="description"
+      content="全国邦群地图聚合展示 BanG Dream! 邦邦全国各省及海外地区群聊信息，支持地图选省、全局搜索、群号复制与快速查找同好组织。"
+    />
+    <meta
+      name="keywords"
+      content="全国邦群地图,BanG Dream,邦邦,邦群,QQ群,地图导航,同好社群,省份群聊,海外群聊"
+    />
+    <meta name="author" content="全国邦群地图" />
+    <meta name="robots" content="index,follow,max-image-preview:large" />
+    <meta name="theme-color" content="#f06292" />
+    <meta name="format-detection" content="telephone=no,email=no,address=no" />
+    <link rel="canonical" href="https://mapapi.enldm.cyou/" />
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="zh_CN" />
+    <meta property="og:site_name" content="全国邦群地图" />
+    <meta property="og:title" content="全国邦群地图 - BanG Dream! 邦邦同好群聊导航" />
+    <meta
+      property="og:description"
+      content="聚合全国各省及海外地区 BanG Dream! 群聊信息，支持地图查看、搜索筛选与一键复制群号。"
+    />
+    <meta property="og:url" content="https://mapapi.enldm.cyou/" />
+    <meta property="og:image" content="https://mapapi.enldm.cyou/BanG_Dream!_logo.svg" />
+    <meta property="og:image:alt" content="全国邦群地图 BanG Dream! 标识" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="全国邦群地图 - BanG Dream! 邦邦同好群聊导航" />
+    <meta
+      name="twitter:description"
+      content="查看全国与海外 BanG Dream! 邦群分布，支持省份浏览、全局搜索和快速复制群号。"
+    />
+    <meta name="twitter:image" content="https://mapapi.enldm.cyou/BanG_Dream!_logo.svg" />
     <link rel="stylesheet" href="./styles.css" />
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        "name": "全国邦群地图",
+        "alternateName": "BanG Dream! 邦邦同好群聊导航",
+        "url": "https://mapapi.enldm.cyou/",
+        "description": "聚合展示全国各省及海外地区 BanG Dream! 群聊信息，支持地图缩放、分省查看、全局搜索与一键复制群号。",
+        "inLanguage": "zh-CN",
+        "keywords": [
+          "全国邦群地图",
+          "BanG Dream",
+          "邦邦",
+          "QQ群",
+          "地图导航",
+          "同好社群"
+        ],
+        "publisher": {
+          "@type": "Organization",
+          "name": "全国邦群地图"
+        },
+        "potentialAction": {
+          "@type": "SearchAction",
+          "target": "https://mapapi.enldm.cyou/?q={search_term_string}",
+          "query-input": "required name=search_term_string"
+        }
+      }
+    </script>
   </head>
   <body>
-    <div id="map">
+    <header class="seo-header" aria-label="页面标题">
+      <h1>全国邦群地图</h1>
+      <p>
+        提供 BanG Dream! 邦邦全国各省及海外地区群聊信息导航，帮助同好快速查找可加入的社群组织。
+      </p>
+    </header>
+
+    <main id="map" role="main">
       <svg id="mapSvg"></svg>
       <section id="introCard" class="md3-card" aria-label="地图介绍">
         <button id="introCloseBtn" class="intro-action-btn" type="button" aria-label="收起介绍">收起</button>
@@ -119,7 +185,7 @@
       <button id="refreshApiBtn" class="context-refresh-btn" type="button">刷新数据</button>
 
       <div id="tooltip"></div>
-    </div>
+    </main>
 
     <footer id="siteFooter">
       <a href="https://icp.gov.moe/?keyword=20260423" target="_blank" rel="noopener noreferrer">萌ICP备20260423号</a>
