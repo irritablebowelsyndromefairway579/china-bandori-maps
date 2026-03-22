@@ -25,6 +25,14 @@ let refreshActionBound = false;
 let mobileEdgeBounceBound = false;
 let easterEggBound = false;
 let mobilePinchGuardBound = false;
+let listToolsBound = false;
+let currentDetailProvinceName = '';
+let currentDetailRows = [];
+let listQuery = '';
+let listType = 'all';
+let listSort = 'default';
+let globalSearchEnabled = false;
+let currentDataSource = 'none';
 
 function isMobileViewport() {
   return window.matchMedia('(max-width: 720px)').matches;
@@ -68,6 +76,12 @@ function groupTypeText(type) {
   return '其他';
 }
 
+function typeFilterValue(type) {
+  if (type === 'school') return 'school';
+  if (type === 'region') return 'region';
+  return 'other';
+}
+
 function formatCreatedAt(value) {
   if (!value) return '建群时间未知';
   const date = new Date(value);
@@ -86,6 +100,240 @@ function escapeHTML(value) {
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#39;');
+}
+
+function bindListTools() {
+  if (listToolsBound) return;
+
+  const searchInput = document.getElementById('searchInput');
+  const typeFilter = document.getElementById('typeFilter');
+  const sortBar = document.getElementById('sortBar');
+  const globalSearchBtn = document.getElementById('globalSearchBtn');
+  if (!searchInput || !typeFilter || !sortBar || !globalSearchBtn) return;
+
+  searchInput.addEventListener('input', () => {
+    listQuery = String(searchInput.value || '').trim().toLowerCase();
+    renderCurrentDetail();
+  });
+
+  typeFilter.addEventListener('change', () => {
+    listType = typeFilter.value || 'all';
+    renderCurrentDetail();
+  });
+
+  globalSearchBtn.addEventListener('click', () => {
+    if (!globalSearchEnabled) {
+      setGlobalSearchEnabled(true, { resetToDefault: false });
+      renderCurrentDetail();
+    } else {
+      setGlobalSearchEnabled(false, { resetToDefault: true });
+    }
+  });
+
+  sortBar.addEventListener('click', (event) => {
+    const btn = event.target.closest('.sort-btn');
+    if (!btn) return;
+
+    const key = btn.getAttribute('data-sort') || 'default';
+    if (key === 'time_desc' || key === 'time_asc') {
+      listSort = listSort === 'time_desc' ? 'time_asc' : 'time_desc';
+    } else if (key === 'name_asc' || key === 'name_desc') {
+      listSort = listSort === 'name_asc' ? 'name_desc' : 'name_asc';
+    } else if (key === 'type_asc' || key === 'type_desc') {
+      listSort = listSort === 'type_asc' ? 'type_desc' : 'type_asc';
+    } else {
+      listSort = 'default';
+    }
+
+    updateSortButtonView();
+    renderCurrentDetail();
+  });
+
+  updateSortButtonView();
+
+  listToolsBound = true;
+}
+
+function setGlobalSearchEnabled(enabled, options = {}) {
+  const { resetToDefault = false } = options;
+
+  globalSearchEnabled = !!enabled;
+
+  const globalSearchBtn = document.getElementById('globalSearchBtn');
+  if (globalSearchBtn) {
+    globalSearchBtn.classList.toggle('active', globalSearchEnabled);
+    globalSearchBtn.setAttribute('aria-pressed', globalSearchEnabled ? 'true' : 'false');
+  }
+
+  if (globalSearchEnabled) {
+    selectedProvinceKey = null;
+    currentDetailProvinceName = '';
+    currentDetailRows = [];
+    if (mapViewState && mapViewState.g) {
+      mapViewState.g.selectAll('.province').classed('selected', false);
+    }
+  }
+
+  if (!globalSearchEnabled && resetToDefault) {
+    selectedProvinceKey = null;
+    currentDetailProvinceName = '';
+    currentDetailRows = [];
+    hideMapBubble();
+    updateSummaryUI(currentDataSource);
+  }
+}
+
+function updateSortButtonView() {
+  const sortBar = document.getElementById('sortBar');
+  if (!sortBar) return;
+
+  const buttons = Array.from(sortBar.querySelectorAll('.sort-btn'));
+  buttons.forEach((btn) => {
+    const key = btn.getAttribute('data-sort') || '';
+    btn.classList.remove('active');
+
+    if (key === 'default') {
+      btn.textContent = '默认';
+      if (listSort === 'default') btn.classList.add('active');
+      return;
+    }
+
+    if (key === 'time_desc' || key === 'time_asc') {
+      btn.textContent = listSort === 'time_asc' ? '认证时间 ↑' : '认证时间 ↓';
+      if (listSort === 'time_asc' || listSort === 'time_desc') btn.classList.add('active');
+      btn.setAttribute('data-sort', listSort === 'time_asc' ? 'time_asc' : 'time_desc');
+      return;
+    }
+
+    if (key === 'name_asc' || key === 'name_desc') {
+      btn.textContent = listSort === 'name_desc' ? '首字母 Z→A' : '首字母 A→Z';
+      if (listSort === 'name_asc' || listSort === 'name_desc') btn.classList.add('active');
+      btn.setAttribute('data-sort', listSort === 'name_desc' ? 'name_desc' : 'name_asc');
+      return;
+    }
+
+    if (key === 'type_asc' || key === 'type_desc') {
+      btn.textContent = listSort === 'type_desc' ? '类型 Z→A' : '类型 A→Z';
+      if (listSort === 'type_asc' || listSort === 'type_desc') btn.classList.add('active');
+      btn.setAttribute('data-sort', listSort === 'type_desc' ? 'type_desc' : 'type_asc');
+    }
+  });
+}
+
+function getFilteredSortedRows(rows) {
+  let result = rows.slice();
+
+  if (listType !== 'all') {
+    result = result.filter((item) => typeFilterValue(item.type) === listType);
+  }
+
+  if (listQuery) {
+    result = result.filter((item) => {
+      const name = String(item.name || '').toLowerCase();
+      const info = String(item.info || '').toLowerCase();
+      return name.includes(listQuery) || info.includes(listQuery);
+    });
+  }
+
+  const byTimeDesc = (a, b) => {
+    const ta = new Date(a.created_at || 0).getTime() || 0;
+    const tb = new Date(b.created_at || 0).getTime() || 0;
+    return tb - ta;
+  };
+
+  if (listSort === 'time_desc') {
+    result.sort(byTimeDesc);
+  } else if (listSort === 'time_asc') {
+    result.sort((a, b) => byTimeDesc(b, a));
+  } else if (listSort === 'name_asc') {
+    result.sort((a, b) => String(a.name || '').localeCompare(String(b.name || ''), 'zh-CN-u-co-pinyin'));
+  } else if (listSort === 'name_desc') {
+    result.sort((a, b) => String(b.name || '').localeCompare(String(a.name || ''), 'zh-CN-u-co-pinyin'));
+  } else if (listSort === 'type_asc') {
+    result.sort((a, b) => {
+      const ta = groupTypeText(a.type);
+      const tb = groupTypeText(b.type);
+      const cmp = ta.localeCompare(tb, 'zh-CN-u-co-pinyin');
+      if (cmp !== 0) return cmp;
+      return String(a.name || '').localeCompare(String(b.name || ''), 'zh-CN-u-co-pinyin');
+    });
+  } else if (listSort === 'type_desc') {
+    result.sort((a, b) => {
+      const ta = groupTypeText(a.type);
+      const tb = groupTypeText(b.type);
+      const cmp = tb.localeCompare(ta, 'zh-CN-u-co-pinyin');
+      if (cmp !== 0) return cmp;
+      return String(a.name || '').localeCompare(String(b.name || ''), 'zh-CN-u-co-pinyin');
+    });
+  } else {
+    result.sort((a, b) => {
+      if ((b.verified || 0) !== (a.verified || 0)) return (b.verified || 0) - (a.verified || 0);
+      return String(a.name || '').localeCompare(String(b.name || ''), 'zh-CN');
+    });
+  }
+
+  return result;
+}
+
+function renderGroupList(rows) {
+  const listEl = document.getElementById('groupList');
+  if (!listEl) return;
+
+  if (!rows.length) {
+    listEl.innerHTML = '<div class="empty-text">没有匹配到结果</div>';
+    return;
+  }
+
+  listEl.innerHTML = rows
+    .map((item) => {
+      const name = escapeHTML(item.name || '未命名群');
+      const rawInfo = item.info || '';
+      const info = escapeHTML(rawInfo || '无联系方式');
+      const copyValue = encodeURIComponent(String(rawInfo || ''));
+      const type = escapeHTML(groupTypeText(item.type));
+      const verifyText = item.verified ? '已认证' : '未认证';
+      const verifyMeta = escapeHTML(verifyText) + ' · ' + escapeHTML('认证时间：' + formatCreatedAt(item.created_at));
+      return `
+        <article class="group-item">
+          <div class="group-top">
+            <h3 class="group-name">${name}</h3>
+            <span class="group-chip">${type}</span>
+          </div>
+          <div class="group-info-row">
+            <p class="group-info copy-number" data-copy="${copyValue}" title="点击复制群号">${info}</p>
+            <button class="copy-btn" data-copy="${copyValue}" type="button">复制群号</button>
+          </div>
+          <p class="group-meta">${verifyMeta}</p>
+        </article>
+      `;
+    })
+    .join('');
+}
+
+function renderCurrentDetail() {
+  if (!currentDetailProvinceName && !globalSearchEnabled) return;
+
+  const titleEl = document.getElementById('selectedTitle');
+  const countEl = document.getElementById('selectedProvince');
+  const metaEl = document.getElementById('selectedMeta');
+
+  const sourceRows = globalSearchEnabled ? bandoriRows : currentDetailRows;
+  const filtered = getFilteredSortedRows(sourceRows);
+  const schoolCount = filtered.filter((x) => x.type === 'school').length;
+  const regionCount = filtered.filter((x) => x.type === 'region').length;
+  const otherCount = filtered.length - schoolCount - regionCount;
+
+  const scopeName = currentDetailProvinceName || '未选择省份';
+
+  animateSelectedCardUpdate(() => {
+    if (titleEl) titleEl.textContent = globalSearchEnabled ? '全局搜索 · 群详情' : `${currentDetailProvinceName} · 群详情`;
+    if (countEl) countEl.textContent = `${filtered.length} / ${sourceRows.length} 个群`;
+    if (metaEl) {
+      const scope = globalSearchEnabled ? '范围 全局' : `范围 ${scopeName}`;
+      metaEl.textContent = `${scope} · 地区 ${regionCount} · 校群 ${schoolCount} · 其他 ${otherCount}`;
+    }
+    renderGroupList(filtered);
+  });
 }
 
 function bindCopyAction() {
@@ -210,8 +458,9 @@ function bindRightClickGuard() {
 async function reloadBandoriData() {
   const { rows, source } = await fetchBandoriData();
   bandoriRows = rows;
+  currentDataSource = source;
   provinceGroupsMap = buildProvinceMap(bandoriRows);
-  updateSummaryUI(source);
+  updateSummaryUI(source, false);
   renderChinaMap();
   if (selectedProvinceKey === '海外') {
     showProvinceDetails('海外');
@@ -684,7 +933,7 @@ function animateSelectedCardUpdate(updateFn) {
   setTimeout(clear, 560);
 }
 
-function updateSummaryUI(source) {
+function updateSummaryUI(source, animate = true) {
   const titleEl = document.getElementById('selectedTitle');
   const countEl = document.getElementById('selectedProvince');
   const metaEl = document.getElementById('selectedMeta');
@@ -695,12 +944,38 @@ function updateSummaryUI(source) {
     return sum + (provinceGroupsMap.get(key)?.length || 0);
   }, 0);
 
-  if (titleEl) titleEl.textContent = '全国邦群数据';
-  if (countEl) countEl.textContent = `${mainlandTotal} 个群`;
-  if (metaEl) metaEl.textContent = `数据源：${source}`;
-  if (listEl) {
-    listEl.innerHTML = '<div class="empty-text">点击地图省份查看详细群信息</div>';
+  const applySummary = () => {
+    if (titleEl) titleEl.textContent = '全国邦群数据';
+    if (countEl) countEl.textContent = `${mainlandTotal} 个群`;
+    if (metaEl) metaEl.textContent = `数据源：${source}`;
+    if (listEl) {
+      listEl.innerHTML = '<div class="empty-text">点击地图省份查看详细群信息</div>';
+    }
+  };
+
+  if (animate) animateSelectedCardUpdate(applySummary);
+  else applySummary();
+
+  const searchInput = document.getElementById('searchInput');
+  const typeFilter = document.getElementById('typeFilter');
+  const sortBar = document.getElementById('sortBar');
+  if (searchInput) searchInput.value = '';
+  if (typeFilter) typeFilter.value = 'all';
+  if (sortBar) {
+    listSort = 'default';
+    updateSortButtonView();
   }
+  const globalSearchBtn = document.getElementById('globalSearchBtn');
+  if (globalSearchBtn) {
+    globalSearchEnabled = false;
+    globalSearchBtn.classList.remove('active');
+    globalSearchBtn.setAttribute('aria-pressed', 'false');
+  }
+  listQuery = '';
+  listType = 'all';
+  listSort = 'default';
+  currentDetailProvinceName = '';
+  currentDetailRows = [];
 
   const overseasBtn = document.getElementById('overseasToggleBtn');
   if (overseasBtn) overseasBtn.classList.remove('active');
@@ -710,62 +985,15 @@ function showProvinceDetails(provinceName) {
   const key = normalizeProvinceName(provinceName);
   const rows = provinceGroupsMap.get(key) || [];
 
-  const titleEl = document.getElementById('selectedTitle');
-  const countEl = document.getElementById('selectedProvince');
-  const metaEl = document.getElementById('selectedMeta');
-  const listEl = document.getElementById('groupList');
+  currentDetailProvinceName = provinceName;
+  currentDetailRows = rows;
+  renderCurrentDetail();
 
-  const schoolCount = rows.filter((x) => x.type === 'school').length;
-  const regionCount = rows.filter((x) => x.type === 'region').length;
-  const otherCount = rows.length - schoolCount - regionCount;
-
-  animateSelectedCardUpdate(() => {
-    if (titleEl) titleEl.textContent = `${provinceName} · 群详情`;
-    if (countEl) countEl.textContent = `${rows.length} 个群`;
-    if (metaEl) metaEl.textContent = `地区 ${regionCount} · 校群 ${schoolCount} · 其他 ${otherCount}`;
-
-    const overseasBtn = document.getElementById('overseasToggleBtn');
-    if (overseasBtn) {
-      if (key === '海外') overseasBtn.classList.add('active');
-      else overseasBtn.classList.remove('active');
-    }
-
-    if (!listEl) return;
-    if (!rows.length) {
-      listEl.innerHTML = '<div class="empty-text">该省份暂无群信息</div>';
-      return;
-    }
-
-    const sorted = rows.slice().sort((a, b) => {
-      if ((b.verified || 0) !== (a.verified || 0)) return (b.verified || 0) - (a.verified || 0);
-      return String(a.name || '').localeCompare(String(b.name || ''), 'zh-CN');
-    });
-
-    listEl.innerHTML = sorted
-      .map((item) => {
-        const name = escapeHTML(item.name || '未命名群');
-        const rawInfo = item.info || '';
-        const info = escapeHTML(rawInfo || '无联系方式');
-        const copyValue = encodeURIComponent(String(rawInfo || ''));
-        const type = escapeHTML(groupTypeText(item.type));
-        const verifyText = item.verified ? '已认证' : '未认证';
-        const verifyMeta = escapeHTML(verifyText) + ' · ' + escapeHTML('认证时间：' + formatCreatedAt(item.created_at));
-        return `
-          <article class="group-item">
-            <div class="group-top">
-              <h3 class="group-name">${name}</h3>
-              <span class="group-chip">${type}</span>
-            </div>
-            <div class="group-info-row">
-              <p class="group-info copy-number" data-copy="${copyValue}" title="点击复制群号">${info}</p>
-              <button class="copy-btn" data-copy="${copyValue}" type="button">复制群号</button>
-            </div>
-            <p class="group-meta">${verifyMeta}</p>
-          </article>
-        `;
-      })
-      .join('');
-  });
+  const overseasBtn = document.getElementById('overseasToggleBtn');
+  if (overseasBtn) {
+    if (key === '海外') overseasBtn.classList.add('active');
+    else overseasBtn.classList.remove('active');
+  }
 }
 
 function colorByCount(count, maxCount) {
@@ -824,6 +1052,9 @@ function bindControlEvents() {
 
   if (overseasToggleBtn) {
     overseasToggleBtn.addEventListener('click', () => {
+      if (globalSearchEnabled) {
+        setGlobalSearchEnabled(false, { resetToDefault: false });
+      }
       selectedProvinceKey = '海外';
       showProvinceDetails('海外');
       hideMapBubble();
@@ -981,6 +1212,9 @@ function renderChinaMap() {
 
       // 穿透：按省份点击处理，不弹气泡
       if (!shouldShowBubble) {
+        if (globalSearchEnabled) {
+          setGlobalSearchEnabled(false, { resetToDefault: false });
+        }
         selectedProvinceKey = normalizeProvinceName(d.name);
         g.selectAll('.province').classed('selected', false);
         const provincePath = g.select('#' + d.id);
@@ -996,6 +1230,9 @@ function renderChinaMap() {
   });
 
   g.selectAll('.province').on('click', function (d) {
+    if (globalSearchEnabled) {
+      setGlobalSearchEnabled(false, { resetToDefault: false });
+    }
     selectedProvinceKey = normalizeProvinceName(d.name);
     g.selectAll('.province').classed('selected', false);
     d3.select(this).classed('selected', true);
@@ -1057,6 +1294,7 @@ async function init() {
   applyMobileModeLayout();
   await reloadBandoriData();
   bindCopyAction();
+  bindListTools();
   bindIntroToggle();
   bindFeedbackModal();
   bindRightClickGuard();

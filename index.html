@@ -53,6 +53,30 @@
         <h2 id="selectedTitle" class="card-title">全国邦群数据</h2>
         <p id="selectedProvince" class="card-value">加载中...</p>
         <p id="selectedMeta" class="card-body">正在获取最新数据</p>
+        <div id="listTools" class="list-tools">
+          <div class="search-row">
+            <button id="globalSearchBtn" class="search-mode-btn" type="button" aria-label="全局搜索开关" title="切换全局搜索">
+              <span class="search-icon">⌕</span>
+              <span class="search-label">全局搜索</span>
+            </button>
+            <input id="searchInput" class="md3-input" type="search" placeholder="搜索群名 / 群号" />
+          </div>
+          <div class="tool-row">
+            <label class="tool-label" for="typeFilter">类型</label>
+            <select id="typeFilter" class="md3-select">
+              <option value="all">全部</option>
+              <option value="region">地区</option>
+              <option value="school">校群</option>
+              <option value="other">其他</option>
+            </select>
+          </div>
+          <div id="sortBar" class="sort-bar" aria-label="排序方式">
+            <button class="sort-btn active" type="button" data-sort="default">默认</button>
+            <button class="sort-btn" type="button" data-sort="time_desc">认证时间 ↓</button>
+            <button class="sort-btn" type="button" data-sort="name_asc">首字母 A→Z</button>
+            <button class="sort-btn" type="button" data-sort="type_asc">类型 A→Z</button>
+          </div>
+        </div>
         <div id="groupList" class="group-list"></div>
       </section>
 
