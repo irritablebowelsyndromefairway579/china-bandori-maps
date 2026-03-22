@@ -402,6 +402,22 @@ body {
   background: var(--md-primary);
 }
 
+.side-toggle-btn.mobile-inside {
+  position: static;
+  z-index: auto;
+  top: auto;
+  right: auto;
+  bottom: auto;
+  margin: 0 0 10px;
+  width: 100%;
+  height: 40px;
+  border-radius: 12px;
+}
+
+#controlCard.mobile-hidden {
+  display: none !important;
+}
+
 #controlCard {
   left: 16px;
   bottom: 16px;
@@ -478,6 +494,8 @@ body {
   margin-top: 12px;
   max-height: calc(100vh - 220px);
   overflow: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
   padding-right: 4px;
   border-top: 1px solid var(--md-outline-variant);
   padding-top: 10px;
@@ -648,8 +666,42 @@ body {
 .map-bubble-scroll {
   max-height: 260px;
   overflow: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
   padding-right: 4px;
   border-radius: 12px;
+}
+
+.edge-bounce-up {
+  animation: edgeBounceUp 260ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.edge-bounce-down {
+  animation: edgeBounceDown 260ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes edgeBounceUp {
+  0% {
+    transform: translateY(0);
+  }
+  38% {
+    transform: translateY(-8px);
+  }
+  100% {
+    transform: translateY(0);
+  }
+}
+
+@keyframes edgeBounceDown {
+  0% {
+    transform: translateY(0);
+  }
+  38% {
+    transform: translateY(8px);
+  }
+  100% {
+    transform: translateY(0);
+  }
 }
 
 .map-bubble.open {
@@ -752,15 +804,22 @@ body {
 }
 
 @media (max-width: 720px) {
+  #tooltip {
+    display: none;
+  }
+
   .md3-card {
     width: calc(100vw - 24px);
-    border-radius: 20px;
-    padding: 14px 14px;
+    border-radius: 18px;
+    padding: 12px 12px;
   }
 
   #introCard {
     top: 8px;
     left: 8px;
+    width: calc(100vw - 16px);
+    max-height: 40vh;
+    overflow: auto;
   }
 
   #introCard.collapsed {
@@ -768,37 +827,154 @@ body {
   }
 
   #introCard .card-title {
-    font-size: 24px;
+    font-size: 20px;
   }
 
   #introCard .card-body {
-    font-size: 16px;
+    font-size: 14px;
+    line-height: 1.45;
+  }
+
+  .md3-switch-label {
+    font-size: 13px;
+  }
+
+  .github-link,
+  .feedback-link {
+    width: 100%;
+    justify-content: center;
+    font-size: 12px;
   }
 
   #selectedCard {
     top: auto;
+    left: 8px;
     right: 8px;
     bottom: 8px;
-    max-height: 42vh;
+    width: calc(100vw - 16px);
+    max-height: 46vh;
+    border-radius: 18px;
   }
 
   .side-toggle-btn {
     right: 8px;
-    bottom: calc(42vh + 16px);
+    bottom: calc(46vh + 18px);
     top: auto;
-    min-width: 64px;
-    height: 40px;
+    min-width: 68px;
+    height: 42px;
+  }
+
+  .side-toggle-btn.mobile-inside {
+    right: auto;
+    bottom: auto;
+    min-width: 0;
+    height: 38px;
   }
 
   #controlCard {
     left: 8px;
-    bottom: 8px;
+    bottom: calc(46vh + 18px);
     min-width: 0;
-    width: calc(100vw - 24px);
+    width: auto;
+    max-width: calc(100vw - 86px);
+    padding: 10px 10px;
+  }
+
+  #controlCard .card-title {
+    font-size: 13px;
+    margin-bottom: 6px;
+  }
+
+  .md3-btn {
+    min-height: 38px;
+    padding: 9px 12px;
+    font-size: 12px;
   }
 
   .group-list {
-    max-height: calc(42vh - 110px);
+    max-height: calc(46vh - 112px);
+  }
+
+  .group-name {
+    font-size: 13px;
+  }
+
+  .group-info {
+    font-size: 14px;
+  }
+
+  .copy-btn {
+    min-height: 30px;
+  }
+
+  .map-bubble {
+    min-width: 180px;
+    max-width: calc(100vw - 20px);
+    max-height: 44vh;
+    padding: 8px;
+    border-radius: 14px;
+  }
+
+  .map-bubble-scroll {
+    max-height: calc(44vh - 18px);
+  }
+
+  .map-bubble-title {
+    font-size: 13px;
+  }
+
+  .bubble-name {
+    font-size: 12px;
+  }
+
+  .bubble-id {
+    font-size: 13px;
+  }
+
+  .count-badge text {
+    font-size: 9px;
+  }
+
+  .feedback-modal-card {
+    width: min(94vw, 390px);
+    border-radius: 16px;
+    padding: 12px 12px 10px;
+  }
+
+  .feedback-modal-close {
+    width: 30px;
+    height: 30px;
+    font-size: 18px;
+  }
+
+  .context-refresh-btn {
+    min-height: 40px;
+    padding: 10px 14px;
+    font-size: 13px;
+  }
+}
+
+@media (max-width: 420px) {
+  #introCard .card-title {
+    font-size: 18px;
+  }
+
+  #introCard .card-body {
+    font-size: 13px;
+  }
+
+  .md3-switch-track {
+    width: 48px;
+    height: 30px;
+  }
+
+  .md3-switch-thumb {
+    width: 20px;
+    height: 20px;
+  }
+
+  .md3-switch input:checked + .md3-switch-track .md3-switch-thumb {
+    transform: translateX(18px);
   }
 }
 

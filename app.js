@@ -22,6 +22,36 @@ let developerModeEnabled = false;
 let resetClickBurstCount = 0;
 let resetClickBurstTimer = null;
 let refreshActionBound = false;
+let mobileEdgeBounceBound = false;
+
+function isMobileViewport() {
+  return window.matchMedia('(max-width: 720px)').matches;
+}
+
+function applyMobileModeLayout() {
+  const mapEl = document.getElementById('map');
+  const selectedCard = document.getElementById('selectedCard');
+  const overseasBtn = document.getElementById('overseasToggleBtn');
+  const controlCard = document.getElementById('controlCard');
+  const introCard = document.getElementById('introCard');
+  if (!mapEl || !selectedCard || !overseasBtn || !controlCard || !introCard) return;
+
+  if (isMobileViewport()) {
+    if (overseasBtn.parentElement !== selectedCard) {
+      selectedCard.insertBefore(overseasBtn, selectedCard.firstChild);
+    }
+    overseasBtn.classList.add('mobile-inside');
+    controlCard.classList.add('mobile-hidden');
+    introCard.classList.add('collapsed');
+    return;
+  }
+
+  if (overseasBtn.parentElement !== mapEl) {
+    mapEl.insertBefore(overseasBtn, document.getElementById('controlCard'));
+  }
+  overseasBtn.classList.remove('mobile-inside');
+  controlCard.classList.remove('mobile-hidden');
+}
 
 function normalizeProvinceName(name) {
   if (!name) return '';
@@ -204,6 +234,58 @@ function bindRefreshAction() {
   });
 
   refreshActionBound = true;
+}
+
+function bindMobileEdgeBounce() {
+  if (mobileEdgeBounceBound) return;
+
+  const attach = (scrollEl, bounceEl) => {
+    if (!scrollEl || !bounceEl) return;
+
+    let startY = 0;
+    let lock = false;
+
+    scrollEl.addEventListener(
+      'touchstart',
+      (event) => {
+        if (!isMobileViewport()) return;
+        startY = event.touches?.[0]?.clientY || 0;
+        lock = false;
+      },
+      { passive: true }
+    );
+
+    scrollEl.addEventListener(
+      'touchmove',
+      (event) => {
+        if (!isMobileViewport() || lock) return;
+        const currentY = event.touches?.[0]?.clientY || startY;
+        const dy = currentY - startY;
+        const atTop = scrollEl.scrollTop <= 0;
+        const atBottom = scrollEl.scrollTop + scrollEl.clientHeight >= scrollEl.scrollHeight - 1;
+
+        if (atTop && dy > 12) {
+          bounceEl.classList.remove('edge-bounce-down');
+          void bounceEl.offsetHeight;
+          bounceEl.classList.add('edge-bounce-down');
+          setTimeout(() => bounceEl.classList.remove('edge-bounce-down'), 280);
+          lock = true;
+        } else if (atBottom && dy < -12) {
+          bounceEl.classList.remove('edge-bounce-up');
+          void bounceEl.offsetHeight;
+          bounceEl.classList.add('edge-bounce-up');
+          setTimeout(() => bounceEl.classList.remove('edge-bounce-up'), 280);
+          lock = true;
+        }
+      },
+      { passive: true }
+    );
+  };
+
+  attach(document.getElementById('groupList'), document.getElementById('selectedCard'));
+  attach(document.getElementById('introCard'), document.getElementById('introCard'));
+
+  mobileEdgeBounceBound = true;
 }
 
 function handleResetBurstForDeveloperMode() {
@@ -875,14 +957,19 @@ function renderChinaMap() {
 }
 
 async function init() {
+  applyMobileModeLayout();
   await reloadBandoriData();
   bindCopyAction();
   bindIntroToggle();
   bindFeedbackModal();
   bindRightClickGuard();
   bindRefreshAction();
+  bindMobileEdgeBounce();
 }
 
-window.addEventListener('resize', renderChinaMap);
+window.addEventListener('resize', () => {
+  applyMobileModeLayout();
+  renderChinaMap();
+});
 init();
 
