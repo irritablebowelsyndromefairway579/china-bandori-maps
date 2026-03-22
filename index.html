@@ -15,6 +15,8 @@
     <meta name="author" content="全国邦群地图" />
     <meta name="robots" content="index,follow,max-image-preview:large" />
     <meta name="theme-color" content="#f06292" />
+    <meta name="theme-color" content="#f06292" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#140913" media="(prefers-color-scheme: dark)" />
     <meta name="format-detection" content="telephone=no,email=no,address=no" />
     <link rel="canonical" href="https://mapapi.enldm.cyou/" />
     <meta property="og:type" content="website" />
@@ -90,6 +92,11 @@
           <input id="invertCtrlSwitch" type="checkbox" />
           <span class="md3-switch-track"><span class="md3-switch-thumb"></span></span>
           <span id="invertCtrlLabel" class="md3-switch-label">反转操作（默认关）</span>
+        </label>
+        <label class="md3-switch" for="themeSwitch">
+          <input id="themeSwitch" type="checkbox" />
+          <span class="md3-switch-track"><span class="md3-switch-thumb"></span></span>
+          <span id="themeSwitchLabel" class="md3-switch-label">暗黑模式（跟随系统）</span>
         </label>
 
         <div class="intro-links">

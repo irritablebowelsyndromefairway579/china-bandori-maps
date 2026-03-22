@@ -21,6 +21,8 @@ const State = {
   invertCtrlBubble: false,
   developerModeEnabled: false,
   globalSearchEnabled: false,
+  themePreference: 'system',
+  systemThemeMediaQuery: null,
   
   // 详情与列表状态
   currentDetailProvinceName: '',
@@ -118,6 +120,61 @@ function applyMobileModeLayout() {
     els.controlCard.classList.remove('mobile-hidden');
     els.selectedCard.style.height = '';
   }
+}
+
+function getPreferredTheme() {
+  if (State.themePreference === 'light' || State.themePreference === 'dark') return State.themePreference;
+  return State.systemThemeMediaQuery?.matches ? 'dark' : 'light';
+}
+
+function updateThemeMetaColor(theme) {
+  const metaThemeColor = document.querySelector('meta[name="theme-color"]:not([media])');
+  if (!metaThemeColor) return;
+  metaThemeColor.setAttribute('content', theme === 'dark' ? '#140913' : '#f06292');
+}
+
+function updateThemeSwitchUI() {
+  const themeSwitch = document.getElementById('themeSwitch');
+  const label = document.getElementById('themeSwitchLabel');
+  const effectiveTheme = getPreferredTheme();
+  if (themeSwitch) themeSwitch.checked = effectiveTheme === 'dark';
+  if (label) {
+    label.textContent = State.themePreference === 'system'
+      ? `暗黑模式（跟随系统：${effectiveTheme === 'dark' ? '开' : '关'}）`
+      : `暗黑模式（临时${effectiveTheme === 'dark' ? '开启' : '关闭'}）`;
+  }
+}
+
+function applyThemePreference() {
+  const effectiveTheme = getPreferredTheme();
+  if (State.themePreference === 'system') {
+    document.documentElement.removeAttribute('data-theme');
+  } else {
+    document.documentElement.setAttribute('data-theme', effectiveTheme);
+  }
+  updateThemeMetaColor(effectiveTheme);
+  updateThemeSwitchUI();
+}
+
+function setThemePreference(preference) {
+  State.themePreference = preference;
+  applyThemePreference();
+}
+
+function initThemePreference() {
+  State.systemThemeMediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+
+  const handleSystemThemeChange = () => {
+    if (State.themePreference === 'system') applyThemePreference();
+  };
+
+  if (typeof State.systemThemeMediaQuery.addEventListener === 'function') {
+    State.systemThemeMediaQuery.addEventListener('change', handleSystemThemeChange);
+  } else if (typeof State.systemThemeMediaQuery.addListener === 'function') {
+    State.systemThemeMediaQuery.addListener(handleSystemThemeChange);
+  }
+
+  applyThemePreference();
 }
 
 function bindMobileSheetResize() {
@@ -740,6 +797,18 @@ function bindAllStaticEvents() {
     if(label) label.textContent = State.invertCtrlBubble ? '反转操作（已开启）' : '反转操作（默认关）';
   });
 
+  const themeSwitch = document.getElementById('themeSwitch');
+  themeSwitch?.addEventListener('change', () => {
+    const currentEffectiveTheme = getPreferredTheme();
+    const nextTheme = currentEffectiveTheme === 'dark' ? 'light' : 'dark';
+    setThemePreference(nextTheme);
+  });
+
+  themeSwitch?.addEventListener('contextmenu', (e) => {
+    e.preventDefault();
+    setThemePreference('system');
+  });
+
   const feedbackModal = document.getElementById('feedbackModal');
   document.getElementById('feedbackModalBtn')?.addEventListener('click', () => { feedbackModal?.classList.add('open'); feedbackModal?.setAttribute('aria-hidden', 'false'); });
   document.getElementById('feedbackModalClose')?.addEventListener('click', () => { feedbackModal?.classList.remove('open'); feedbackModal?.setAttribute('aria-hidden', 'true'); });
@@ -787,6 +856,7 @@ function bindAllStaticEvents() {
 // 8. 初始化 (Initialization)
 // ==========================================
 async function init() {
+  initThemePreference();
   bindAllStaticEvents(); // 仅绑定一次
   bindMobileSheetResize();
   applyMobileModeLayout();
