@@ -131,6 +131,12 @@ function updateThemeMetaColor(theme) {
   const metaThemeColor = document.querySelector('meta[name="theme-color"]:not([media])');
   if (!metaThemeColor) return;
   metaThemeColor.setAttribute('content', theme === 'dark' ? '#140913' : '#f06292');
+
+  const supportsDynamicThemeColor = window.matchMedia('(display-mode: browser)').matches || window.matchMedia('(display-mode: standalone)').matches;
+  if (supportsDynamicThemeColor) {
+    document.documentElement.style.setProperty('background-color', theme === 'dark' ? '#140913' : '#fff7fa');
+    document.body.style.setProperty('background-color', theme === 'dark' ? '#140913' : '#fff7fa');
+  }
 }
 
 function updateThemeSwitchUI() {
