@@ -24,6 +24,7 @@ let resetClickBurstTimer = null;
 let refreshActionBound = false;
 let mobileEdgeBounceBound = false;
 let easterEggBound = false;
+let mobilePinchGuardBound = false;
 
 function isMobileViewport() {
   return window.matchMedia('(max-width: 720px)').matches;
@@ -339,6 +340,49 @@ function bindEasterEgg() {
   });
 
   easterEggBound = true;
+}
+
+function bindMobilePinchGuard() {
+  if (mobilePinchGuardBound) return;
+
+  const shouldBlock = (event) => {
+    if (!isMobileViewport()) return false;
+    const target = event.target;
+    if (!target || !(target instanceof Element)) return false;
+    return !target.closest('#map');
+  };
+
+  document.addEventListener(
+    'touchmove',
+    (event) => {
+      if (event.touches && event.touches.length >= 2 && shouldBlock(event)) {
+        event.preventDefault();
+      }
+    },
+    { passive: false }
+  );
+
+  document.addEventListener(
+    'gesturestart',
+    (event) => {
+      if (shouldBlock(event)) {
+        event.preventDefault();
+      }
+    },
+    { passive: false }
+  );
+
+  document.addEventListener(
+    'gesturechange',
+    (event) => {
+      if (shouldBlock(event)) {
+        event.preventDefault();
+      }
+    },
+    { passive: false }
+  );
+
+  mobilePinchGuardBound = true;
 }
 
 function handleResetBurstForDeveloperMode() {
@@ -1019,6 +1063,7 @@ async function init() {
   bindRefreshAction();
   bindMobileEdgeBounce();
   bindEasterEgg();
+  bindMobilePinchGuard();
 }
 
 window.addEventListener('resize', () => {
