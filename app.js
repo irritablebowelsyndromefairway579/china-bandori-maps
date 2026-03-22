@@ -29,6 +29,7 @@ const State = {
   listType: 'all',
   listSort: 'default',
   currentDataSource: 'none',
+  mobileSheetHeightPx: null,
 
   // 开发者模式相关
   resetClickBurstCount: 0,
@@ -79,25 +80,97 @@ function applyMobileModeLayout() {
     map: document.getElementById('map'),
     selectedCard: document.getElementById('selectedCard'),
     overseasBtn: document.getElementById('overseasToggleBtn'),
+    sheetHandle: document.getElementById('mobileSheetHandle'),
     controlCard: document.getElementById('controlCard'),
     introCard: document.getElementById('introCard')
   };
-  if (!els.map || !els.selectedCard || !els.overseasBtn || !els.controlCard || !els.introCard) return;
+  if (!els.map || !els.selectedCard || !els.overseasBtn || !els.controlCard || !els.introCard || !els.sheetHandle) return;
 
   if (Utils.isMobileViewport()) {
-    if (els.overseasBtn.parentElement !== els.selectedCard) {
-      els.selectedCard.insertBefore(els.overseasBtn, els.selectedCard.firstChild);
+    if (els.overseasBtn.parentElement !== els.selectedCard || els.sheetHandle.parentElement !== els.selectedCard) {
+      els.selectedCard.insertBefore(els.sheetHandle, els.selectedCard.firstChild);
+      els.selectedCard.insertBefore(els.overseasBtn, els.sheetHandle.nextSibling);
     }
     els.overseasBtn.classList.add('mobile-inside');
     els.controlCard.classList.add('mobile-hidden');
     els.introCard.classList.add('collapsed');
+
+    if (State.mobileSheetHeightPx) {
+      els.selectedCard.style.height = `${State.mobileSheetHeightPx}px`;
+    } else if (!els.selectedCard.style.height) {
+      els.selectedCard.style.height = '46vh';
+    }
   } else {
     if (els.overseasBtn.parentElement !== els.map) {
       els.map.insertBefore(els.overseasBtn, els.controlCard);
     }
+    if (els.sheetHandle.parentElement !== els.map) {
+      els.map.insertBefore(els.sheetHandle, els.controlCard);
+    }
     els.overseasBtn.classList.remove('mobile-inside');
     els.controlCard.classList.remove('mobile-hidden');
+    els.selectedCard.style.height = '';
   }
+}
+
+function bindMobileSheetResize() {
+  const handle = document.getElementById('mobileSheetHandle');
+  const card = document.getElementById('selectedCard');
+  if (!handle || !card || handle.dataset.bound === 'true') return;
+  handle.dataset.bound = 'true';
+
+  let startY = 0;
+  let startHeight = 0;
+  let dragging = false;
+
+  const minHeight = () => Math.round(window.innerHeight * 0.28);
+  const maxHeight = () => Math.round(window.innerHeight * 0.82);
+
+  const updateHeight = (clientY) => {
+    const delta = startY - clientY;
+    const next = Math.max(minHeight(), Math.min(maxHeight(), startHeight + delta));
+    State.mobileSheetHeightPx = next;
+    card.style.height = `${next}px`;
+  };
+
+  const onMouseMove = (e) => {
+    if (!dragging || !Utils.isMobileViewport()) return;
+    updateHeight(e.clientY);
+  };
+
+  const onTouchMove = (e) => {
+    if (!dragging || !Utils.isMobileViewport()) return;
+    const touch = e.touches && e.touches[0];
+    if (!touch) return;
+    updateHeight(touch.clientY);
+    e.preventDefault();
+  };
+
+  const stopDrag = () => {
+    dragging = false;
+    document.removeEventListener('mousemove', onMouseMove);
+    document.removeEventListener('mouseup', stopDrag);
+    document.removeEventListener('touchmove', onTouchMove);
+    document.removeEventListener('touchend', stopDrag);
+  };
+
+  const startDrag = (clientY) => {
+    if (!Utils.isMobileViewport()) return;
+    dragging = true;
+    startY = clientY;
+    startHeight = card.getBoundingClientRect().height;
+    document.addEventListener('mousemove', onMouseMove);
+    document.addEventListener('mouseup', stopDrag);
+    document.addEventListener('touchmove', onTouchMove, { passive: false });
+    document.addEventListener('touchend', stopDrag);
+  };
+
+  handle.addEventListener('mousedown', (e) => startDrag(e.clientY));
+  handle.addEventListener('touchstart', (e) => {
+    const touch = e.touches && e.touches[0];
+    if (!touch) return;
+    startDrag(touch.clientY);
+  }, { passive: true });
 }
 
 function setGlobalSearchEnabled(enabled, options = { resetToDefault: false }) {
@@ -693,6 +766,7 @@ function bindAllStaticEvents() {
 // ==========================================
 async function init() {
   bindAllStaticEvents(); // 仅绑定一次
+  bindMobileSheetResize();
   applyMobileModeLayout();
   await reloadBandoriData();
 }
