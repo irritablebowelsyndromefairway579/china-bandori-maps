@@ -489,6 +489,10 @@ function showMapBubbleByProvince(provinceName, anchorX, anchorY) {
   const isCurrentlyOpen = bubble.classList.contains('open');
   let startRect;
 
+  if (!isCurrentlyOpen) {
+    bubble.classList.add('instant-place');
+  }
+
   if (isCurrentlyOpen) {
     startRect = bubble.getBoundingClientRect();
     bubble.style.width = `${startRect.width}px`;
@@ -538,6 +542,11 @@ function showMapBubbleByProvince(provinceName, anchorX, anchorY) {
     bubble.querySelectorAll('.bubble-name').forEach(el => {
       el.classList.toggle('marquee', el.scrollWidth > el.parentElement.clientWidth + 4);
     });
+
+    if (!isCurrentlyOpen) {
+      void bubble.offsetHeight;
+      bubble.classList.remove('instant-place');
+    }
   });
 }
 
@@ -882,9 +891,20 @@ function bindAllStaticEvents() {
     }
 
     if (refreshBtn) {
-      refreshBtn.style.left = `${Math.min(Math.max(8, window.innerWidth - 120), e.clientX + 8)}px`;
-      refreshBtn.style.top = `${Math.min(Math.max(8, window.innerHeight - 48), e.clientY + 8)}px`;
+      const nextLeft = `${Math.min(Math.max(8, window.innerWidth - 120), e.clientX + 8)}px`;
+      const nextTop = `${Math.min(Math.max(8, window.innerHeight - 48), e.clientY + 8)}px`;
+      const wasOpen = refreshBtn.classList.contains('show');
+
+      if (!wasOpen) refreshBtn.classList.add('instant-place');
+
+      refreshBtn.style.left = nextLeft;
+      refreshBtn.style.top = nextTop;
       refreshBtn.classList.add('show');
+
+      if (!wasOpen) {
+        void refreshBtn.offsetHeight;
+        refreshBtn.classList.remove('instant-place');
+      }
     }
   }, true);
   document.addEventListener('click', (e) => { if (e.target !== refreshBtn) refreshBtn?.classList.remove('show'); }, true);

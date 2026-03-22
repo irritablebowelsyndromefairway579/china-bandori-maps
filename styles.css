@@ -858,6 +858,11 @@ body {
   pointer-events: auto;
 }
 
+.map-bubble.instant-place {
+  transition: width 380ms var(--ease-spring), height 380ms var(--ease-spring),
+    transform 360ms var(--ease-spring), opacity 220ms ease !important;
+}
+
 .map-bubble-scroll {
   max-height: 260px;
   overflow: auto;
