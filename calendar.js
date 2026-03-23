@@ -79,6 +79,7 @@
     state.modalAnimToken += 1;
     const token = state.modalAnimToken;
     const startHeight = card.getBoundingClientRect().height;
+    card.classList.add('resizing');
     card.style.height = `${startHeight}px`;
 
     updateFn();
@@ -96,6 +97,7 @@
     const clear = () => {
       if (token !== state.modalAnimToken) return;
       card.style.height = '';
+      card.classList.remove('resizing');
       card.removeEventListener('transitionend', clear);
     };
 

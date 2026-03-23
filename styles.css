@@ -540,6 +540,10 @@ body {
   will-change: transform, opacity, height;
 }
 
+.calendar-modal-card.resizing {
+  overflow: hidden;
+}
+
 .calendar-modal.open .calendar-modal-card,
 .event-poster-modal.open .event-poster-card {
   transform: translateY(0) scale(1);
