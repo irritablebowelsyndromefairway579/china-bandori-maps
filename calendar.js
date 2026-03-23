@@ -2,6 +2,7 @@
   const state = {
     events: [],
     currentDate: new Date(),
+    selectedDateKey: '',
   };
 
   const els = {};
@@ -43,6 +44,9 @@
   function openCalendar() {
     els.calendarModal.classList.add('open');
     els.calendarModal.setAttribute('aria-hidden', 'false');
+    if (!state.selectedDateKey) {
+      state.selectedDateKey = formatDateKey(new Date(state.currentDate.getFullYear(), state.currentDate.getMonth(), 1));
+    }
     renderCalendar();
   }
 
@@ -62,6 +66,26 @@
   function closePoster() {
     els.eventPosterModal.classList.remove('open');
     els.eventPosterModal.setAttribute('aria-hidden', 'true');
+  }
+
+  function renderSelectedDayEvents(dateKey, eventMap) {
+    const dayEvents = eventMap.get(dateKey) || [];
+    if (!dayEvents.length) {
+      els.calendarEventList.innerHTML = `<div class="calendar-empty">${dateKey} 暂无活动</div>`;
+      return;
+    }
+
+    els.calendarEventList.innerHTML = dayEvents
+      .map((item, index) => {
+        return `
+          <button class="calendar-event-item" type="button" data-index="${index}" data-date="${dateKey}">
+            <div class="calendar-event-date">${dateKey}</div>
+            <div class="calendar-event-name">${item.event || '未命名活动'}</div>
+            <div class="calendar-event-text">${item.raw_text || ''}</div>
+          </button>
+        `;
+      })
+      .join('');
   }
 
   function renderCalendar() {
@@ -93,8 +117,9 @@
       const date = new Date(year, month, day);
       const key = formatDateKey(date);
       const events = eventMap.get(key) || [];
+      const selected = state.selectedDateKey === key ? 'selected' : '';
       cells.push(`
-        <button class="calendar-cell ${events.length ? 'has-event' : ''}" type="button" data-date="${key}">
+        <button class="calendar-cell ${events.length ? 'has-event' : ''} ${selected}" type="button" data-date="${key}">
           <span class="calendar-day">${day}</span>
           ${events.length ? `<span class="calendar-dot">${events.length}</span>` : ''}
         </button>
@@ -103,27 +128,24 @@
 
     els.calendarGrid.innerHTML = cells.join('');
 
-    const monthEvents = state.events
-      .filter((item) => item.parsedDate.getFullYear() === year && item.parsedDate.getMonth() === month)
-      .sort((a, b) => a.parsedDate - b.parsedDate);
+    const monthHasAnyEvent = state.events.some(
+      (item) => item.parsedDate.getFullYear() === year && item.parsedDate.getMonth() === month
+    );
 
-    if (!monthEvents.length) {
+    if (!monthHasAnyEvent) {
       els.calendarEventList.innerHTML = '<div class="calendar-empty">本月暂无活动</div>';
       return;
     }
 
-    els.calendarEventList.innerHTML = monthEvents
-      .map((item, index) => {
-        const dateKey = formatDateKey(item.parsedDate);
-        return `
-          <button class="calendar-event-item" type="button" data-index="${index}" data-date="${dateKey}">
-            <div class="calendar-event-date">${dateKey}</div>
-            <div class="calendar-event-name">${item.event || '未命名活动'}</div>
-            <div class="calendar-event-text">${item.raw_text || ''}</div>
-          </button>
-        `;
-      })
-      .join('');
+    const selectedIsCurrentMonth = state.selectedDateKey && state.selectedDateKey.startsWith(`${year}-${String(month + 1).padStart(2, '0')}`);
+    if (!selectedIsCurrentMonth) {
+      const firstEvent = state.events.find(
+        (item) => item.parsedDate.getFullYear() === year && item.parsedDate.getMonth() === month
+      );
+      state.selectedDateKey = firstEvent ? formatDateKey(firstEvent.parsedDate) : '';
+    }
+
+    renderSelectedDayEvents(state.selectedDateKey, eventMap);
   }
 
   function bindEvents() {
@@ -157,11 +179,12 @@
     });
 
     els.calendarGrid?.addEventListener('click', (e) => {
-      const cell = e.target.closest('.calendar-cell.has-event');
+      const cell = e.target.closest('.calendar-cell');
       if (!cell) return;
       const dateKey = cell.getAttribute('data-date');
-      const match = state.events.find((item) => formatDateKey(item.parsedDate) === dateKey);
-      if (match) openPoster(match);
+      if (!dateKey) return;
+      state.selectedDateKey = dateKey;
+      renderCalendar();
     });
 
     els.eventPosterClose?.addEventListener('click', closePoster);
