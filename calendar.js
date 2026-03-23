@@ -116,9 +116,15 @@
 
     els.calendarEventList.innerHTML = dayEvents
       .map((item, index) => {
+        const eventKey = encodeURIComponent(JSON.stringify({
+          event: item.event || '',
+          date: item.date || '',
+          image: item.image || '',
+          raw_text: item.raw_text || '',
+        }));
         const official = Number(item.offical) === 1;
         return `
-          <button class="calendar-event-item ${official ? 'official' : ''}" type="button" data-index="${index}" data-date="${dateKey}">
+          <button class="calendar-event-item ${official ? 'official' : ''}" type="button" data-event-key="${eventKey}" data-date="${dateKey}">
             <div class="calendar-event-date">${dateKey}</div>
             <div class="calendar-event-name">${item.event || '未命名活动'}</div>
             <div class="calendar-event-text">${item.raw_text || ''}</div>
@@ -218,13 +224,20 @@
     els.calendarEventList?.addEventListener('click', (e) => {
       const item = e.target.closest('.calendar-event-item');
       if (!item) return;
-      const date = item.getAttribute('data-date');
-      const indexInMonth = Number(item.getAttribute('data-index'));
-      const current = state.currentDate;
-      const monthEvents = state.events
-        .filter((ev) => ev.parsedDate.getFullYear() === current.getFullYear() && ev.parsedDate.getMonth() === current.getMonth())
-        .sort((a, b) => a.parsedDate - b.parsedDate);
-      const eventData = monthEvents[indexInMonth];
+      const rawKey = item.getAttribute('data-event-key');
+      if (!rawKey) return;
+      let parsed;
+      try {
+        parsed = JSON.parse(decodeURIComponent(rawKey));
+      } catch (err) {
+        return;
+      }
+      const eventData = state.events.find((ev) =>
+        (ev.event || '') === parsed.event &&
+        (ev.date || '') === parsed.date &&
+        (ev.image || '') === parsed.image &&
+        (ev.raw_text || '') === parsed.raw_text
+      );
       if (eventData) openPoster(eventData);
     });
 

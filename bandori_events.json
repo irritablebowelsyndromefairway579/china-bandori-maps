@@ -1,20 +1,76 @@
 {
     "events": [
         {
-            "event": "test",
-            "date": "2026-3-24",
-            "raw_text": "test",
+            "event": "BanG Dream! Special LIVE in TAIPEI",
+            "date": "2026-4-11",
+            "raw_text": "大佳河濱公園",
             "project": "bandori",
-            "image": "2.png",
+            "image": "BanG_Dream_Special_LIVE_in_TAIPEI.webp",
             "offical": 1
         },
         {
-            "event": "test2",
-            "date": "2026-3-24",
-            "raw_text": "test",
+            "event": "Ave Mujica LIVE TOUR 2026「Exitus」-FINAL-",
+            "date": "2026-4-17",
+            "raw_text": "SGC HALL ARIAKE",
             "project": "bandori",
-            "image": "3.png",
-            "offical": 0
+            "image": "Ave_Mujica_LIVE_TOUR_2026.webp",
+            "offical": 1
+        },
+        {
+            "event": "Poppin'Party×Roselia 合同ライブ「DREAMS GO ON」",
+            "date": "2026-5-3",
+            "raw_text": "有明アリーナ",
+            "project": "bandori",
+            "image": "PoppinPartyRoselia.webp",
+            "offical": 1
+        },
+        {
+            "event": "RAISE A SUILEN LIVE 2026「Boot IGNITION」東京公演",
+            "date": "2026-6-18",
+            "raw_text": "SGC HALL ARIAKE",
+            "project": "bandori",
+            "image": "RAS2026.webp",
+            "offical": 1
+        },
+        {
+            "event": "RAISE A SUILEN LIVE 2026「Boot IGNITION」兵庫公演",
+            "date": "2026-6-26",
+            "raw_text": "神戸国際会館こくさいホール",
+            "project": "bandori",
+            "image": "RAS2026.webp",
+            "offical": 1
+        },
+        {
+            "event": "夢限大みゅーたいぷ 47都道府県制覇の旅「スーパーポジション 〜スピンアップ編〜」　東京公演",
+            "date": "2026-6-21",
+            "raw_text": "SGC HALL ARIAKE",
+            "project": "bandori",
+            "image": "Mewtype.webp",
+            "offical": 1
+        },
+        {
+            "event": "MyGO!!!!! 9th LIVE",
+            "date": "2026-7-18",
+            "raw_text": "ぴあアリーナMM",
+            "project": "bandori",
+            "image": "MyGO.webp",
+            "offical": 1
+        },
+        {
+            "event": "Roselia 10th Anniversary Best Album「Lehre der Rose」",
+            "date": "2026-8-29",
+            "raw_text": "有明Arena",
+            "project": "bandori",
+            "image": "R10th.webp",
+            "offical": 1
+        },
+        {
+            "event": "Morfonica単独ライブ",
+            "date": "2026-9-22",
+            "raw_text": "TACHIKAWA STAGE GARDEN",
+            "project": "bandori",
+            "image": "Morfonica.webp",
+            "offical": 1
         }
     ]
 }
