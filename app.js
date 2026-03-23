@@ -348,6 +348,7 @@ function renderGroupList(rows) {
 
   listEl.innerHTML = rows.map((item) => {
     const name = Utils.escapeHTML(item.name || '未命名群');
+    const rawText = Utils.escapeHTML(item.raw_text || item.name || '');
     const detectedUrl = Utils.extractUrl(item);
     const rawInfo = detectedUrl || item.info || '';
     const infoText = rawInfo || '无联系方式';
@@ -363,11 +364,11 @@ function renderGroupList(rows) {
     const buttonAttrs = rawInfo ? `data-copy="${copyValue}"` : 'disabled';
     
     return `
-      <article class="group-item">
-        <div class="group-top">
-          <h3 class="group-name">${name}</h3>
-          <span class="group-chip">${type}</span>
-        </div>
+        <article class="group-item">
+          <div class="group-top">
+            <h3 class="group-name" title="${rawText}">${name}</h3>
+            <span class="group-chip">${type}</span>
+          </div>
         <div class="group-info-row">
           <p class="${infoClass}" ${infoAttrs}>${info}</p>
           <button class="copy-btn" ${buttonAttrs} type="button">${actionText}</button>
