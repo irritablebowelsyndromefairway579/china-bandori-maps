@@ -71,6 +71,38 @@
             "project": "bandori",
             "image": "Morfonica.webp",
             "offical": 1
+        },
+        {
+            "event": "太原 BanG Dream! Only 1st",
+            "date": "2026-4-20",
+            "raw_text": "山西太原",
+            "project": "bandori",
+            "image": "",
+            "offical": 0
+        },
+        {
+            "event": "四川BanGDream! ONLY Live 3.5",
+            "date": "2026-5-4",
+            "raw_text": "四川成都",
+            "project": "bandori",
+            "image": "",
+            "offical": 0
+        },
+        {
+            "event": "5.1「重庆」BanG Dream! Only live",
+            "date": "2026-5-1",
+            "raw_text": "重庆市大渡口区文体路89号壹街购物中心B区一楼",
+            "project": "bandori",
+            "image": "",
+            "offical": 0
+        },
+        {
+            "event": "徽京对邦 BanGDream Only",
+            "date": "2026-5-23",
+            "raw_text": "安徽合肥",
+            "project": "bandori",
+            "image": "",
+            "offical": 0
         }
     ]
 }
